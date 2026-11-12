@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090c1c">
+<title>Forever a year with you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+:root{--night:#090c1c;--ink:#f6ede4;--amber:#ffc46b;--rose:#ff7a9c;--mist:#8f98c0;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--night);color:var(--ink);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Fraunces",Georgia,"Times New Roman",serif}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.top,.bottom{position:fixed;left:0;right:0;display:grid;text-align:center;pointer-events:none}
+.top>*,.bottom>*{grid-area:1/1}
+.top{top:0;padding:calc(env(safe-area-inset-top,0px) + 7vh) 24px 0}
+.bottom{bottom:0;padding:0 28px calc(env(safe-area-inset-bottom,0px) + 7vh)}
+#count{transition:opacity 1s}
+#num{display:block;font-size:clamp(64px,19vw,120px);font-weight:300;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+#count span{font-style:italic;font-weight:300;font-size:clamp(16px,4.4vw,22px);color:var(--mist)}
+#title{opacity:0;transition:opacity 2.2s 1.8s}
+#title h1{margin:0;font-weight:300;font-size:clamp(30px,8.6vw,54px);line-height:1.12;color:var(--ink)}
+#title p{margin:12px 0 0;font-style:italic;font-weight:300;color:var(--amber);font-size:clamp(15px,4vw,20px)}
+#hint,#msg{align-self:end;margin:0 auto;max-width:21em}
+#hint{font-style:italic;font-weight:300;font-size:clamp(16px,4.4vw,21px);color:var(--mist);transition:opacity .6s}
+#msg{opacity:0;transition:opacity .8s;font-weight:300;font-size:clamp(20px,5.4vw,30px);line-height:1.35}
+#msg.on{opacity:1}
+#msg small{display:block;margin-top:14px;font-style:italic;font-size:14px;color:var(--mist)}
+body.done #count,body.done #hint{opacity:0}
+body.done #title{opacity:1}
+.btn{font:italic 300 17px/1 Fraunces,Georgia,serif;color:var(--ink);background:rgba(255,196,107,.12);border:1px solid rgba(255,196,107,.5);border-radius:999px;padding:12px 22px;cursor:pointer}
+.btn.rose{background:rgba(255,122,156,.16);border-color:rgba(255,122,156,.6)}
+#go{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;z-index:4;opacity:0;pointer-events:none;transition:opacity 1s;padding:9px 16px;font-size:15px}
+#go.show{opacity:1;pointer-events:auto}
+#more{position:fixed;inset:0;z-index:5;background:rgba(9,12,28,.97);overflow-y:auto;touch-action:pan-y;transform:translateY(100%);transition:transform .9s cubic-bezier(.2,.7,.2,1);padding:calc(env(safe-area-inset-top,0px) + 7vh) 22px calc(env(safe-area-inset-bottom,0px) + 10vh)}
+#more.open{transform:none}
+.sec{max-width:30rem;margin:0 auto 15vh;text-align:center}
+.sec h2{font-weight:300;font-size:clamp(26px,7vw,38px);line-height:1.15;margin:0 0 8px}
+.sec>p{color:var(--mist);font-style:italic;font-weight:300;margin:0 0 24px}
+#env button{display:block;width:100%;margin:0 0 12px;padding:16px 18px;border:1px solid rgba(255,196,107,.35);border-radius:14px;background:rgba(255,255,255,.03);color:var(--ink);font:italic 300 18px/1.3 Fraunces,Georgia,serif;text-align:left;cursor:pointer}
+#env .l{display:none;margin-top:12px;font-style:normal;line-height:1.55;font-size:17px}
+#env button.on .l{display:block}
+#rs{min-height:8.5em;display:grid;place-items:center;padding:22px;margin-bottom:18px;border:1px solid rgba(255,122,156,.4);border-radius:26px 26px 40px 26px;font-size:clamp(20px,5.4vw,26px);line-height:1.35;font-weight:300}
+#rc{display:block;margin:0 0 16px;color:var(--mist);font-style:italic;font-size:14px}
+.ph{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 6px 20px;touch-action:pan-x pan-y}
+.ph figure{flex:0 0 78%;margin:0;scroll-snap-align:center;background:#f6ede4;padding:10px 10px 14px;border-radius:3px;transform:rotate(var(--r))}
+.ph img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.ph figcaption{color:#1a1630;font-style:italic;font-size:15px;margin-top:9px}
+#cdn{font-size:clamp(64px,20vw,110px);font-weight:300;line-height:1;color:var(--amber)}
+#no{position:relative;margin-left:10px;transition:transform .25s}
+#fin{margin-top:22px;font-size:clamp(20px,5.4vw,28px);font-weight:300;min-height:3em}
+.hf{position:fixed;bottom:-30px;z-index:9;pointer-events:none;animation:rise var(--d) linear forwards}
+@keyframes rise{to{transform:translateY(-118vh) rotate(40deg);opacity:0}}
+#live{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.u b{display:block;font-size:clamp(24px,7vw,34px);font-weight:300;color:var(--amber);font-variant-numeric:tabular-nums}
+.u span{font-size:12px;color:var(--mist);font-style:italic}
+#tot{margin-top:18px;color:var(--mist);font-style:italic;font-size:15px}
+#hug{width:128px;height:128px;border-radius:50%;font-size:18px}
+.beat{animation:bt .95s infinite}
+@keyframes bt{0%,100%{transform:scale(1)}20%{transform:scale(1.14)}40%{transform:scale(1)}60%{transform:scale(1.08)}}
+#hs{display:block;margin-top:16px;color:var(--mist);font-style:italic;min-height:2.6em}
+#cp .cp{display:block;width:100%;margin:0 0 12px;padding:14px 16px;text-align:left;border:2px dashed rgba(255,122,156,.5);border-radius:12px;background:rgba(255,255,255,.03);color:var(--ink);font:300 18px/1.3 Fraunces,Georgia,serif;cursor:pointer}
+#cp .cp span{display:block;margin-top:6px;font-style:italic;font-size:15px;color:var(--mist)}
+#cp .cp.used{border-style:solid;opacity:.6}
+#sc{position:relative;width:100%;max-width:300px;aspect-ratio:3/2;margin:0 auto;border-radius:18px;overflow:hidden}
+#secret{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(135deg,#ff7a9c,#ffc46b);color:#2a1020;font-size:19px;line-height:1.3;font-weight:500}
+#scv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;transition:opacity 1s}
+#lt{white-space:pre-line;text-align:left;font-size:18px;line-height:1.65;font-weight:300;border-left:2px solid var(--rose);padding-left:14px;margin:0 0 18px}
+#lt:empty{display:none}
+@media (prefers-reduced-motion:reduce){#title,#msg{transition-duration:.01s;transition-delay:0s}.beat{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+<div class="top">
+  <div id="count"><b id="num">0</b><span>of 365 days</span></div>
+  <div id="title"><h1>Happy first anniversary,<br><span id="nm"></span></h1><p id="dt"></p></div>
+</div>
+<div class="bottom">
+  <p id="hint"></p>
+  <p id="msg"><span id="txt"></span><small>Tap for another, or drag across the sky</small></p>
+</div>
+<button id="go" class="btn">Open the rest</button>
+<div id="more">
+  <section class="sec"><h2>Open when…</h2><p>Little letters for the days we’re apart.</p><div id="env"></div></section>
+  <section class="sec" id="phs" hidden><h2>Us</h2><p>Swipe through.</p><div class="ph" id="ph"></div></section>
+  <section class="sec"><h2>Always you in my forever</h2><p>For you I'm always yours.</p><div id="rs">Tap below.</div><small id="rc"></small><button class="btn rose" id="pull">Tap to read babyy</button></section>
+  <section class="sec"><h2>Time with you</h2><p>Since <span id="sd"></span>, and still counting.</p><div id="live"></div><div id="tot"></div></section>
+  <section class="sec"><h2>A hug, through the screen</h2><p>Press and hold. Your will feel my heartbeat.</p><button class="btn rose" id="hug">Hold me</button><small id="hs"></small></section>
+  <section class="sec"><h2>Moments I cherish forever.</h2><p>Tap on each one baby.</p><div id="cp"></div></section>
+  <section class="sec"><h2>One secret</h2><p>Scratch to reveal.</p><div id="sc"><div id="secret"></div><canvas id="scv"></canvas></div></section>
+  <section class="sec"><h2>A letter</h2><p>For when you have a quiet minute.</p><div id="lt"></div><button class="btn" id="lb">Read it</button></section>
+  <section class="sec" id="cds" hidden><h2>Until I see you</h2><div id="cdn"></div><p>days left</p></section>
+  <section class="sec"><h2>Will you be mine forever babyy🤧🤧</h2><p></p><button class="btn rose" id="yes">Yes</button><button class="btn" id="no">No</button><div id="fin"></div></section>
+  <section class="sec"><button class="btn" id="back">Back to the sky</button></section>
+</div>
+<script>
+// ---- Edit these three things ----
+const NAME = "Shafa";
+const FROM = "Adii";            // put your name here, e.g. "Ali". Leave "" to show "me" under your star
+const DATE = "13 November 2026";
+const MSG = [
+  "A year ago, you became my favourite part of every day.",
+  "Distance never once made you feel far away.",
+  "Every message from you is a small light in my sky.",
+  "I don’t need the whole universe. I just need you in it.",
+  "Here’s to the next 365 days, and every one after.",
+  "I love you, " + NAME + (FROM ? ".  — " + FROM : ".")
+];
+// ---------------------------------
+
+const $ = id => document.getElementById(id);
+$("nm").textContent = NAME; $("dt").textContent = DATE;
+const c = $("c"), x = c.getContext("2d");
+let W, H, D, S;
+function size(){
+  D = Math.min(window.devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+  c.width = W * D; c.height = H * D; x.setTransform(D, 0, 0, D, 0, 0);
+  S = Math.min(W * 0.8 / 34, H * 0.5 / 30);
+}
+size(); addEventListener("resize", size);
+
+const N = 365, P = [], cols = ["rgba(255,196,107,", "rgba(255,122,156,", "rgba(190,205,255,"];
+for (let i = 0; i < N; i++){
+  const t = Math.random() * 6.2832, r = 1 - Math.pow(Math.random(), 2.4) * 0.92;
+  const hx = 16 * Math.pow(Math.sin(t), 3);
+  const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+  const k = Math.random();
+  P.push({hx: hx * r, hy: (hy + 2.5) * r, ax: Math.random(), ay: Math.random(),
+    s: Math.random() * 1.3 + 0.6, ph: Math.random() * 6.28, sp: 0.5 + Math.random() * 1.5,
+    d: Math.random(), c: k < 0.4 ? cols[0] : k < 0.8 ? cols[1] : cols[2]});
+}
+
+const ease = v => v * v * (3 - 2 * v), clamp = v => Math.max(0, Math.min(1, v));
+let p = 0, hold = false, done = false, form = 0, last = -1, t0 = performance.now(), lastVib = 0, hintState = "";
+
+function setHint(s){
+  if (s === hintState) return; hintState = s;
+  $("hint").textContent = s === "idle" ? "Press and hold anywhere to bring us closer"
+    : s === "hold" ? "Keep holding" : "Hold again, we’re not there yet";
+}
+function vib(a){ try { navigator.vibrate && navigator.vibrate(a); } catch(e){} }
+
+let m = 0, ready = false, lastTap = 0;
+function showMsg(i){
+  $("msg").classList.remove("on");
+  setTimeout(() => { $("txt").textContent = MSG[i]; $("msg").classList.add("on"); ready = true; $("go").classList.add("show"); }, 800);
+}
+function finish(){
+  done = true; document.body.classList.add("done");
+  vib([40, 90, 40, 500, 60, 90, 60]);
+  setTimeout(() => showMsg(0), 4200);
+}
+
+addEventListener("pointerdown", e => {
+  if (opened || e.target.closest("#go")) return;
+  if (done){
+    burst(e.clientX, e.clientY, 12);
+    const n = performance.now();
+    if (ready && n - lastTap > 1400){ lastTap = n; m = (m + 1) % MSG.length; ready = false; showMsg(m); }
+    return;
+  }
+  hold = true;
+});
+["pointerup", "pointercancel", "blur"].forEach(e => addEventListener(e, () => hold = false));
+addEventListener("keydown", e => { if (e.code === "Space") hold = true; });
+addEventListener("keyup", e => { if (e.code === "Space") hold = false; });
+addEventListener("contextmenu", e => e.preventDefault());
+
+// ---- Edit the extra pages here ----
+const LETTERS = [
+  ["Open when you miss me", "Close your eyes. Somewhere far away, I’m thinking about you right now. Distance only changes how far apart our hands are, not how close we are."],
+  ["Open when you can’t sleep", "Look at the sky tonight. It’s the same one I’m looking at. Let it hold us together until morning."],
+  ["Open when you’re sad", "You don’t have to be okay right now. I’m not going anywhere. Take your time, you have my love in you, with you and then tell me everything."],
+  ["Open when we’ve argued", "Whatever it was, it’s smaller than us. I would rather be on your side than be right."],
+  ["Open when you need a smile", "Remember that seeing you smile will always be thg most beautiful and gorgeous thing I'll ever wish to see for you I'll be there to make you smile with me badmashi🤧🤧."]
+];
+const REASONS = [
+  "You make my darkest day filled up with light of you love babyy.",
+  "You stayed close even when we were far apart.",
+  "You’re the first love and going to be my forever love not going to leave you I will be there always holding you like your chota sa baccha 🤧🤧🫂🫂.",
+  "Loving you always made me feel happy and fall for you harder.",
+  "You make me want to be better, not different.",
+  "I am always yours and you are mineeee not going to make someone else love you more than me..",
+  "You feel like home, wherever I am.",
+  "With you, I want my future to be better .",
+  "You are my cutiee babyy for you I want to become better than Yesterday and best for tomorrow.",
+  "You see me clearly and you stay.",
+  "You’re the best thing that happened to my life.",
+  "I love your cute little cheeks whenever you smile I just get hooked up on you 🫠🫠."
+];
+const PHOTOS = [];      // [{src: "data:image/jpeg;base64,...", cap: "Our first photo"}]
+const MEET_DATE = "";   // e.g. "2027-01-20" to show a countdown to the day you meet
+
+let opened = false;
+$("go").onclick = () => { opened = true; $("more").classList.add("open"); };
+$("back").onclick = () => { opened = false; $("more").classList.remove("open"); $("more").scrollTop = 0; };
+$("env").innerHTML = LETTERS.map(l => '<button><span class="t">' + l[0] + '</span><span class="l">' + l[1] + '</span></button>').join("");
+$("env").onclick = e => { const b = e.target.closest("button"); if (b) b.classList.toggle("on"); };
+let ri = 0; const order = REASONS.slice().sort(() => Math.random() - 0.5);
+$("pull").onclick = () => { if (ri >= order.length){ ri = 0; order.sort(() => Math.random() - 0.5); } $("rs").textContent = order[ri++]; $("rc").textContent = + ri +  + order.length; };
+if (PHOTOS.length){
+  $("phs").hidden = false;
+  $("ph").innerHTML = PHOTOS.map((o, i) => '<figure style="--r:' + (i % 2 ? 1.5 : -1.5) + 'deg"><img src="' + o.src + '" alt=""><figcaption>' + (o.cap || "") + '</figcaption></figure>').join("");
+}
+if (MEET_DATE){
+  const dl = Math.ceil((new Date(MEET_DATE + "T00:00:00") - Date.now()) / 864e5);
+  $("cds").hidden = false; $("cdn").textContent = dl > 0 ? dl : "Today";
+  if (dl <= 0) $("cds").querySelector("p").textContent = "is the day";
+}
+function hearts(){
+  for (let i = 0; i < 40; i++){
+    const s = document.createElement("span"); s.className = "hf"; s.textContent = "♥";
+    s.style.cssText = "left:" + Math.random() * 100 + "%;font-size:" + (14 + Math.random() * 26) + "px;color:" + (Math.random() < 0.5 ? "#ff7a9c" : "#ffc46b") + ";--d:" + (3 + Math.random() * 3.5) + "s;animation-delay:" + Math.random() * 1.2 + "s";
+    document.body.appendChild(s); setTimeout(() => s.remove(), 8000);
+  }
+}
+function yes(){ $("fin").textContent = "Then it’s settled, " + NAME + ". I’m yours for the next 365."; hearts(); vib([60, 80, 60, 80, 200]); }
+let dodges = 0;
+function dodge(){ dodges++; const b = $("no"); b.style.transform = "translate(" + (Math.random() * 160 - 80) + "px," + (Math.random() * 70 - 35) + "px)"; if (dodges >= 5) b.textContent = "Fine, yes"; }
+$("yes").onclick = yes;
+$("no").addEventListener("pointerenter", () => { if (dodges < 5) dodge(); });
+$("no").onclick = () => { dodges >= 5 ? yes() : dodge(); };
+
+// ---- More things to edit ----
+const START = "2025-11-13T00:00:00";   // the day it began
+const COUPONS = [
+  ["The day I first met you in person and saw you smiling blushing 🫠🫠."],
+  ["The day I played ludo with you feeling the best I have got is you in me."],
+  ["The day you sent me your voice note and it became blessing to my ears."],
+  ["The day you told me that you like and made me feel that you complete me."],
+  ["The day when I gave a compliment for first time couldn't was a sily boy didn't knew how to say something so beautiful that will be in your heart forever 🤧🤧."],
+  ["The day when I got text from you first time in my life never knew it would come out to be wtth you in my future babyy🫂❤️."]
+];
+const SECRET = "I already know what I want always: everything, with you.";
+const LETTER = NAME + ",\n\nOne year ago I didn’t know how much one person could change an ordinary life. Every call, every message, every good morning from far away made my world best I’ve had.\n\nI can’t hold your hand today, so I built you a little sky instead.\n\nI’m proud of us. Happy first anniversary.\n\nAlways yours" + (FROM ? ",\n" + FROM : "");
+
+const SP = [];
+function burst(px, py, n){ for (let i = 0; i < n; i++) SP.push({x: px, y: py, vx: (Math.random() - 0.5) * 3.2, vy: (Math.random() - 0.5) * 3 - 0.8, l: 1, c: cols[(Math.random() * 3) | 0], s: 1 + Math.random() * 2}); }
+addEventListener("pointermove", e => { if (done && !opened && e.buttons) burst(e.clientX, e.clientY, 2); });
+
+function tick(){
+  const s = new Date(START), n = new Date();
+  let y = n.getFullYear() - s.getFullYear(); const an = new Date(s); an.setFullYear(s.getFullYear() + y);
+  if (an > n){ y--; an.setFullYear(s.getFullYear() + y); }
+  let r = Math.max(0, n - an); const d = Math.floor(r / 864e5); r -= d * 864e5;
+  const h = Math.floor(r / 36e5); r -= h * 36e5; const mi = Math.floor(r / 6e4), se = Math.floor((r - mi * 6e4) / 1e3);
+  $("live").innerHTML = [[y, "years"], [d, "days"], [h, "hours"], [mi, "minutes"], [se, "seconds"]].map(a => '<div class="u"><b>' + a[0] + '</b><span>' + a[1] + '</span></div>').join("");
+  $("tot").textContent = Math.max(0, Math.floor((n - s) / 1000)).toLocaleString() + " seconds of loving you";
+  $("sd").textContent = s.toLocaleDateString("en-GB", {day: "numeric", month: "long", year: "numeric"});
+}
+tick(); setInterval(tick, 1000);
+
+let hb = null;
+function hugOn(){ if (hb) return; $("hug").classList.add("beat"); $("hs").textContent = "Can you feel it? That’s my heartbeat, just for you."; vib([70, 110, 70]); hb = setInterval(() => vib([70, 110, 70]), 950); }
+function hugOff(){ clearInterval(hb); hb = null; $("hug").classList.remove("beat"); vib(0); }
+const hg = $("hug"); hg.addEventListener("pointerdown", e => { e.preventDefault(); hugOn(); });
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => hg.addEventListener(ev, hugOff));
+
+$("cp").innerHTML = COUPONS.map(c => '<button class="cp"><b>' + c[0] + '</b><span>' + c[1] + '</span></button>').join("");
+$("cp").onclick = e => { const b = e.target.closest(".cp"); if (!b || b.classList.contains("used")) return; b.classList.add("used"); b.querySelector("span").textContent = "Redeemed. Show me this screen and it’s yours."; vib(40); };
+
+const scv = $("scv"), sx = scv.getContext("2d"); let sdown = false, scratched = false;
+$("secret").textContent = SECRET;
+function sinit(){
+  const sw = scv.offsetWidth, sh = scv.offsetHeight; scv.width = sw * D; scv.height = sh * D; sx.setTransform(D, 0, 0, D, 0, 0);
+  const g = sx.createLinearGradient(0, 0, sw, sh); g.addColorStop(0, "#b9bfd6"); g.addColorStop(1, "#7d85a8");
+  sx.fillStyle = g; sx.fillRect(0, 0, sw, sh); sx.fillStyle = "#2a2f52"; sx.font = "italic 300 18px Fraunces, Georgia, serif"; sx.textAlign = "center"; sx.fillText("Scratch here", sw / 2, sh / 2 + 6);
+}
+sinit();
+function sdraw(e){ if (!sdown || scratched) return; const r = scv.getBoundingClientRect(); sx.globalCompositeOperation = "destination-out"; sx.beginPath(); sx.arc(e.clientX - r.left, e.clientY - r.top, 20, 0, 6.2832); sx.fill(); }
+function check(){
+  if (scratched) return; const d = sx.getImageData(0, 0, scv.width, scv.height).data; let k = 0, t = 0;
+  for (let i = 3; i < d.length; i += 64){ t++; if (d[i] < 20) k++; }
+  if (k / t > 0.45){ scratched = true; scv.style.opacity = 0; hearts(); vib([40, 60, 40]); }
+}
+scv.addEventListener("pointerdown", e => { sdown = true; sdraw(e); }); scv.addEventListener("pointermove", sdraw);
+["pointerup", "pointercancel"].forEach(ev => scv.addEventListener(ev, () => { sdown = false; check(); }));
+
+let typing = false;
+$("lb").onclick = () => { if (typing) return; typing = true; $("lb").style.display = "none"; let i = 0; const t = setInterval(() => { $("lt").textContent = LETTER.slice(0, ++i); if (i >= LETTER.length) clearInterval(t); }, 32); };
+
+function glow(px, py, col, rad, al){
+  const g = x.createRadialGradient(px, py, 0, px, py, rad);
+  g.addColorStop(0, col + ".95)"); g.addColorStop(1, col + "0)");
+  x.globalAlpha = al; x.fillStyle = g; x.beginPath(); x.arc(px, py, rad, 0, 6.2832); x.fill();
+  x.fillStyle = "#fff"; x.beginPath(); x.arc(px, py, 3.2, 0, 6.2832); x.fill();
+}
+
+function draw(T){
+  const cx = W / 2, cy = H / 2;
+  x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+  x.fillStyle = "#090c1c"; x.fillRect(0, 0, W, H);
+  const bg = x.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.65);
+  bg.addColorStop(0, "rgba(255,110,150," + (0.05 + 0.2 * form + 0.07 * p) + ")"); bg.addColorStop(1, "rgba(9,12,28,0)");
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+
+  const beat = done ? 1 + 0.04 * Math.pow(Math.max(0, Math.sin(T * 3.2)), 3) : 1;
+  x.globalCompositeOperation = "lighter";
+  for (const q of P){
+    const f = ease(clamp(form * 1.7 - q.d * 0.7));
+    const hx = q.ax * W + Math.sin(T * 0.2 * q.sp + q.ph) * 10, hy = q.ay * H + Math.cos(T * 0.17 * q.sp + q.ph) * 10;
+    const px = hx + (cx + q.hx * S * beat - hx) * f, py = hy + (cy + q.hy * S * beat - hy) * f;
+    const a = (0.3 + 0.7 * (0.5 + 0.5 * Math.sin(T * q.sp + q.ph))) * (0.6 + 0.4 * f), r = q.s * (1 + f * 0.5);
+    x.fillStyle = q.c + "1)";
+    x.globalAlpha = a * 0.14; x.beginPath(); x.arc(px, py, r * 3.2, 0, 6.2832); x.fill();
+    x.globalAlpha = a; x.beginPath(); x.arc(px, py, r, 0, 6.2832); x.fill();
+  }
+
+  const e = ease(p), sep = (1 - e) * W * 0.38, vis = 1 - form;
+  const ax = cx - sep, bx = cx + sep, ay = cy + Math.sin(T * 0.9) * 18 * (1 - e), by = cy + Math.cos(T * 0.8) * 18 * (1 - e);
+  if (vis > 0.01){
+    const g = x.createLinearGradient(ax, ay, bx, by);
+    g.addColorStop(0, "rgba(255,196,107,1)"); g.addColorStop(1, "rgba(255,122,156,1)");
+    x.strokeStyle = g; x.lineWidth = 1.4; x.setLineDash([2, 7]); x.lineDashOffset = -T * 12;
+    x.globalAlpha = (0.12 + 0.55 * p) * vis; x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke(); x.setLineDash([]);
+    const rad = 38 + 40 * p + (hold ? 8 * Math.sin(T * 8) : 0);
+    glow(ax, ay, cols[0], rad, vis); glow(bx, by, cols[1], rad, vis);
+    x.globalCompositeOperation = "source-over"; x.fillStyle = "#f6ede4";
+    x.font = "italic 300 15px Fraunces, Georgia, serif"; x.textAlign = "center";
+    x.globalAlpha = 0.7 * vis * (1 - p);
+    x.fillText(NAME, ax, ay + 44); x.fillText(FROM || "me", bx, by + 44);
+    x.globalCompositeOperation = "lighter";
+  }
+  if (form > 0.01) glow(cx, cy + S * 1.5, cols[2], (70 + 14 * Math.sin(T * 3)) * form, form);
+  for (let i = SP.length - 1; i >= 0; i--){
+    const s = SP[i]; s.x += s.vx; s.y += s.vy; s.vy += 0.04; s.l -= 0.02;
+    if (s.l <= 0){ SP.splice(i, 1); continue; }
+    x.globalAlpha = s.l; x.fillStyle = s.c + "1)"; x.beginPath(); x.arc(s.x, s.y, s.s * (0.5 + s.l), 0, 6.2832); x.fill();
+  }
+}
+
+function frame(now){
+  const dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
+  if (!done){
+    p = clamp(p + (hold ? dt / 7 : -dt / 22));
+    if (hold && now - lastVib > 420 - 280 * p){ lastVib = now; vib(10 + 25 * p | 0); }
+    if (p >= 1) finish();
+    const n = Math.round(p * 365); if (n !== last){ last = n; $("num").textContent = n; }
+    setHint(hold ? "hold" : p > 0.01 ? "again" : "idle");
+  }
+  form += ((done ? 1 : ease(clamp((p - 0.88) / 0.12))) - form) * Math.min(1, dt * (done ? 1.6 : 3));
+  draw(now / 1000);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
